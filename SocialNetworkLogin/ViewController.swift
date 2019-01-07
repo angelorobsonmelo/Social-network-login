@@ -29,7 +29,7 @@ class ViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         if userDefault.bool(forKey: usersignedinKey) {
-            self.navigateTosSigninScreen()
+            self.navigateToSigninScreen()
         }
     }
     
@@ -38,7 +38,7 @@ class ViewController: UIViewController {
         self.userDefault.synchronize()
     }
     
-    fileprivate func navigateTosSigninScreen() {
+    fileprivate func navigateToSigninScreen() {
         self.performSegue(withIdentifier: segueToSignin, sender: self)
     }
 
@@ -54,7 +54,7 @@ extension ViewController {
         Auth.auth().signIn(withEmail: email, password: password) { (user, error) in
             if error ==  nil {
                 self.saveStatusLogged()
-                self.navigateTosSigninScreen()
+                self.navigateToSigninScreen()
             } else if (error?._code == AuthErrorCode.userNotFound.rawValue) {
                 self.createUser(email: email, password: password)
             } else {
@@ -68,7 +68,7 @@ extension ViewController {
         Auth.auth().createUser(withEmail: email, password: password) { (result, error) in
             if error == nil {
                 self.saveStatusLogged()
-                self.navigateTosSigninScreen()
+                self.navigateToSigninScreen()
             } else {
                 print(error?.localizedDescription ?? "")
             }
@@ -96,14 +96,14 @@ extension ViewController: GIDSignInUIDelegate, GIDSignInDelegate {
             Auth.auth().signInAndRetrieveData(with: credential) { (result, error) in
                 if error == nil {
                     self.saveStatusLogged()
-                    self.navigateTosSigninScreen()
+                    self.navigateToSigninScreen()
                 } else {
                     print(error?.localizedDescription ?? "")
                 }
             }
         }
-        
     }
+    
 }
 
 extension ViewController: FBSDKLoginButtonDelegate {
@@ -115,24 +115,22 @@ extension ViewController: FBSDKLoginButtonDelegate {
     }
     
     public func loginButton(_ loginButton: FBSDKLoginButton!, didCompleteWith result: FBSDKLoginManagerLoginResult!, error: Error!) {
-                    guard let accessToken = FBSDKAccessToken.current() else {
-                        print("Failed to get access token")
-                        return
-                    }
+        guard let accessToken = FBSDKAccessToken.current() else {
+                print("Failed to get access token")
+                return
+            }
         
-                    let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+        let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+        Auth.auth().signInAndRetrieveData(with: credential) { (result, error) in
+           if error == nil {
+             self.saveStatusLogged()
+             self.navigateToSigninScreen()
+           } else {
+            print(error?.localizedDescription ?? "")
+           }
+       }
         
-                    // Perform login by calling Firebase APIs
-                    Auth.auth().signInAndRetrieveData(with: credential) { (result, error) in
-                        if error == nil {
-                            self.saveStatusLogged()
-                            self.navigateTosSigninScreen()
-                        } else {
-                            print(error?.localizedDescription ?? "")
-                        }
-                    }
-        
-                }
+    }
     
     func loginButtonDidLogOut(_ loginButton: FBSDKLoginButton!) {
        
